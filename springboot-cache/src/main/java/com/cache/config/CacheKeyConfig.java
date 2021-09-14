@@ -18,4 +18,14 @@ public class CacheKeyConfig {
     public KeyGenerator keyGenerator() {
         return (target, method, params) -> method.getName() + Arrays.asList(params);
     }
+
+
+    // @Bean("cacheManager")
+    // public CacheManager cacheManager() {
+    //     // ConcurrentHashMap 缓存
+    //     ConcurrentMapCacheManager cacheManager = new ConcurrentMapCacheManager();
+    //
+    //     // RedisCacheManager.builder()
+    //     new RedisCacheManager();
+    // }
 }
