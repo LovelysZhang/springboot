@@ -23,7 +23,7 @@
         <module>springboot-spring-feature</module>
         <module>springboot-redis</module>
         <module>springboot-project</module>
-        <module>springboot-mybatis-mysql</module>
+        <module>springboot-tx</module>
     </modules>
 
     <parent>
@@ -82,10 +82,22 @@
                 <version>${jackson.version}</version>
             </dependency>
 
+            <!--工具-->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>29.0-jre</version>
+            </dependency>
+
             <dependency>
                 <groupId>com.qunar.qmq</groupId>
                 <artifactId>qmq</artifactId>
                 <version>${qmq.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mybatis.spring.boot</groupId>
+                <artifactId>mybatis-spring-boot-starter</artifactId>
+                <version>2.0.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
