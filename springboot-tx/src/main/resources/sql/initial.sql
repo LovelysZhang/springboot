@@ -3,7 +3,7 @@ drop
 
 CREATE TABLE `tb_activity_order_task`
 (
-    `id`           BIGINT(19,0) NOT NULL DEFAULT '0' COMMENT 'id',
+    `id`           BIGINT(19,0) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'id',
     `user_name`    VARCHAR(50) NOT NULL DEFAULT '' COMMENT '用户名称' COLLATE 'utf8mb4_general_ci',
     `activity_id`  VARCHAR(50) NOT NULL DEFAULT '' COMMENT '活动id' COLLATE 'utf8mb4_general_ci',
     `task_id`      VARCHAR(20) NOT NULL DEFAULT '' COMMENT '任务ID' COLLATE 'utf8mb4_general_ci',

@@ -9,7 +9,6 @@ import tk.mybatis.mapper.code.Style;
 
 import javax.persistence.Id;
 import javax.persistence.Table;
-import java.util.Date;
 
 /**
  * @author lovely
@@ -51,7 +50,4 @@ public class ActivityOrderTask {
      */
     @Version
     private Integer version = 0;
-
-
-    private Date updatedTime;
 }
