@@ -197,3 +197,30 @@ class AbstractPlatformTransactionManager{
 
 
 ## 5、存在事务的情况
+另外一个流程，REQUIRED中嵌套一个REQUIRED_NEW，然后走到REQUIRED_NEW的时候，代码是如何运行的？
+
+大致的过程如下
+
+#### 1、判断上线文中是否有事务
+isExistingTransaction
+    --->handleExistingTransaction // 存在事务情况下会执行
+
+
+#### 2、挂起当前事务 suspend
+
+主要目的：将当前事务中的一切信息保存到SuspendedResourcesHolder对象中，相当于事务的快照，后面恢复的时候用；
+然后将事务现场清理干净，主要是将一堆存储在ThreadLocal中的事务数据干掉。
+
+--->doSuspend //将datasource->connectionHolder从resource ThreadLocal中解绑，然后将connectionHolder返回
+
+#### 3、开启新事务，并执行新事务
+
+#### 4、恢复被挂起的事务 resume
+通过SuspendedResourcesHolder对象中，将被挂起的事务恢复，SuspendedResourcesHolder对象中保存了被挂起的事务所有信息
+
+
+## 6 事务扩展回调接口 TransactionSynchronization
+spring事务运行的过程中，给开发者预留了一些扩展点，在事务执行的不同阶段，将回调扩展点中的一些方法。
+
+
+
