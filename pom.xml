@@ -20,10 +20,11 @@
         <module>springboot-spring-core</module>
         <module>springboot-shardingjdbc</module>
         <module>springboot-spring</module>
-        <module>springboot-spring-feature</module>
+<!--        <module>springboot-spring-feature</module>-->
         <module>springboot-redis</module>
         <module>springboot-project</module>
         <module>springboot-tx</module>
+        <module>docker</module>
     </modules>
 
     <parent>
