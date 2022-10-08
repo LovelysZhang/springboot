@@ -824,6 +824,442 @@ GET product/_search
 
 
 
+##基于查询结果聚合（上面是基于聚合结果聚合）
+GET product/_search
+{
+  "size": 20,
+  "query": {
+    "range": {
+      "price": {
+        "gte": 1000
+      }
+    }
+  },
+  "aggs": {
+    "tags_buckets": {
+      "terms": {
+        "field": "tags.keyword",
+        "size": 100
+      }
+    }
+  }
+}
+##基于filter结果聚合
+GET product/_search
+{
+  "query": {
+    "constant_score": {
+      "filter": {
+        "range": {
+          "price": {
+            "gte": 1000
+          }
+        }
+      }
+    }
+  },
+  "aggs": {
+    "tags_buckets": {
+      "terms": {
+        "field": "tags.keyword",
+        "size": 100
+      }
+    }
+  }
+}
+
+
+## 基于聚合的查询，感觉不好 先聚合是所有的数据聚合
+GET product/_search
+{
+  "aggs": {
+    "tags_buckets": {
+      "terms": {
+        "field": "tags.keyword",
+        "size": 100
+      }
+    }
+  },
+  "query": {
+    "constant_score": {
+      "filter": {
+        "range": {
+          "price": {
+            "gte": 1000
+          }
+        }
+      }
+    }
+  }
+}
+##聚合排序 _count数量 _key _term字典顺序
+
+GET product/_search?size=0
+{
+  "aggs": {
+    "tags_aggs": {
+      "terms": {
+        "field": "tags.keyword",
+        "size": 100,
+        "order": {
+          "_key": "desc"
+        }
+      },
+      "aggs": {
+        "second_sort": {
+          "terms": {
+            "field": "lv.keyword",
+            "order": {
+              "_count": "asc"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+#------------------split--------------------
+GET product/_doc/2
+#脚本CRUD
+POST product/_update/2
+{
+  "script": "ctx._source.price-=1"
+}
+###reindex备份，很耗时
+POST _reindex
+{
+  "source": {
+    "index": "product"
+  },
+  "dest": {
+    "index": "product2"
+  }
+}
+
+###小米10出了新款 新增了tag叫做“无线充电”
+POST product/_update/6
+{
+  "script": {
+    "lang": "painless",
+    "source": "ctx._source.tags.add('无线充电')"
+  }
+}
+GET product/_doc/6
+
+#upsert === update+insert
+
+POST product/_update/15
+{
+  "script": {
+    "lang": "painless",
+    "source": "ctx._source.price+=100"
+  },
+  "upsert": {
+    "name": "小米手机10",
+    "desc": "充电贼快掉电更快，超级无敌望远镜，高刷电竞屏",
+    "price": 1999
+  }
+}
+GET product/_doc/15
+###脚本查询
+GET product/_search
+{
+  "script_fields": {
+    "my_price": {
+      "script": {
+        "lang": "expression",
+        "source": "doc['price']"
+      }
+    }
+  }
+}
+###参数化脚本
+
+
+###脚本模板 实现脚本复用
+
+
+###scripting 函数式编程
+POST product/_update/1
+{
+  "script": {
+    "lang": "painless",
+    "source": """
+    ctx._source.tags.add(params.tag_name);
+    ctx._source.price+=100;
+    """,
+    "params": {
+      "tag_name": "无线秒冲"
+    }
+  }
+}
+GET product/_doc/1
+
+###正则匹配  name中包含【小米】
+
+POST product/_update/1
+{
+  "script": {
+    "lang": "painless",
+    "source": """
+    if(ctx._source.name ==~/[\s\S]*小米[\s\S]*/){
+      ctx._source.name+="****"
+    }else{
+      ctx.op="noop"
+    }
+    """
+  }
+}
+
+
+####深度堆栈不安全，低版本可能需要开启 scripting.painless.reges.enable:true
+
+
+
+
+##doc['feild'].value和param['_source']['feild']区别
+
+#统计男性嫌疑人的数量
+
+#批量查询
+GET product/_mget
+{
+  "docs": [
+    {
+      "_id": 2
+    }
+  ]
+}
+
+GET product/_mget
+{
+  "ids": [
+    2,
+    3
+  ]
+}
+####指定查询想要的字段
+GET product/_mget
+{
+  "docs": [
+    {
+      "_id": 2,
+      "_source": [
+        "name",
+        "price"
+      ]
+    },
+    {
+      "_id": 3
+    }
+  ]
+}
+
+
+#索引的操作类型 op_type
+
+GET test_index/_doc/1
+##create 
+PUT test_index/_doc/1
+{
+  "test_feild": "test",
+  "test_title": "title"
+}
+
+PUT test_index/_doc/2/_create
+{
+  "test_feild": "test",
+  "test_title": "title"
+}
+PUT test_index/_create/3
+{
+  "test_feild": "test",
+  "test_title": "title"
+}
+##delete 懒删除
+DELETE test_index/_doc/3
+
+##update
+####全量替换
+GET test_index/_search
+
+PUT test_index/_doc/aaa
+{
+  "test_feild": "test****",
+  "test_title": "title****"
+}
+
+####部分更新
+POST test_index/_update/aaa
+{
+  "doc": {
+    "test_title": "title####"
+  }
+}
+
+##index
+#### 可以全量替换 或者创建
+PUT test_index/_doc/4?op_type=index
+{
+  "test_feild": "test****",
+  "test_title": "title****",
+  "test_name": "name****"
+}
+
+
+
+#_bulk批量操作
+GET test_index/_search
+
+POST test_index/_bulk
+{"create":{"_id":5}}
+{"test_title":"_bulk create"}
+
+
+POST test_index/_bulk
+{"delete":{"_id":5}}
+
+
+POST test_index/_bulk
+{"update":{"_id":2}}
+{"doc":{"test_title":"_bulk create2"}}
+
+##批量操作
+POST test_index/_bulk
+{"update":{"_id":2}}
+{"doc":{"test_title":"_bulk create3"}}
+{"create":{"_id":5}}
+{"test_title":"_bulk create"}
+
+
+#前缀匹配 prefix
+
+
+#通配符 wildcard
+
+
+
+
+#正则 regexp
+GET product/_search
+{
+  "query": {
+    "regexp": {
+      "desc": {
+        "value": ""
+      }
+    }
+  }
+}
+
+#fuzzy 模糊查询
+GET product/_search
+
+GET product/_search
+{
+  "query": {
+    "fuzzy": {
+      "name": "小手机"
+    }
+  }
+}
+
+GET product/_search
+{
+  "query": {
+    "match": {
+      "name": {
+        "query": "小手机",
+        "fuzziness": 1
+      }
+    }
+  }
+}
+
+#match_phrase 短语前缀
+
+
+
+
+#ngram 和 edge-ngram
+##tokenizer 分词器
+GET _analyze
+{
+  "tokenizer": "ngram",
+  "text": [
+    "reba always"
+  ]
+}
+
+##tokenfilter  词项过滤器
+GET _analyze
+{
+  "tokenizer": "standard",
+  "filter": ["ngram"], 
+  "text": [
+    "reba always"
+  ]
+}
+
+
+
+
+#term suggest
+DELETE news
+
+POST _bulk
+{ "index" : { "_index" : "news","_id":1 } }
+{ "title": "baoqiang bought a new hat with the same color of this font, which is very beautiful baoqiangba baoqiangda baoqiangdada baoqian baoqia"}
+{ "index" : { "_index" : "news","_id":2 } }
+{ "title": "baoqiangge gave birth to two children, one is upstairs, one is downstairs baoqiangba baoqiangda baoqiangdada baoqian baoqia"}
+{ "index" : { "_index" : "news","_id":3} }
+{ "title": "baoqiangge 's money was rolled away baoqiangba baoqiangda baoqiangdada baoqian baoqia"}
+{ "index" : { "_index" : "news","_id":4} }
+{ "title": "baoqiangda baoqiangda baoqiangda baoqiangda baoqiangda baoqian baoqia"}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
