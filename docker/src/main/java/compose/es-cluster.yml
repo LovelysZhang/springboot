@@ -1,5 +1,5 @@
 
-
+#草稿，主要参考 es-cluster2.yml
 version: '3'
 services:
   es01:
