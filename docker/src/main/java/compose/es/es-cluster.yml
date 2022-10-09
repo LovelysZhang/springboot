@@ -1,145 +1,108 @@
-
-#草稿，主要参考 es-cluster2.yml
 version: '3'
 services:
   es01:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.13.2
     container_name: es01
-    privileged: true
     environment:
-      # 挂载文件失败，权限不够
-      - TAKE_FILE_OWNERSHIP=true
+      # 节点名称
       - node.name=es01
-      - cluster.name=es-docker-cluster
+      # 集群名称
+      - cluster.name=my-application
+      #指定主机名称
       - discovery.seed_hosts=es02,es03
-      - cluster.initial_master_nodes=es02,es03,es01
+      # 从哪里选举主节点
+      - cluster.initial_master_nodes=es01,es02,es03
+      # 是否锁住内存，避免交换(swapped)带来的性能损失
       - bootstrap.memory_lock=true
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
-      - TZ="Asia/Shanghai"
-      # 指定该节点是否有资格被选举成为master node，默认true
-#      - node.master=true
-      # 指定该节点是否存储索引数据，默认为true。node.master和node.data不能同时为true
-#      - node.data=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      # 解决 elasticsearch-head 跨域问题
       - http.cors.enabled=true
       - http.cors.allow-origin=*
-      - xpack.security.enabled=false
+      - TAKE_FILE_OWNERSHIP=true
+      - TZ="Asia/Shanghai"
     ulimits:
       memlock:
         soft: -1
         hard: -1
     volumes:
-      - /docker-mount/elasticsearch/data01/data:/usr/share/elasticsearch/data
-      - /docker-mount/elasticsearch/data01/logs:/usr/share/elasticsearch/logs
+      - ./volume/es01/data:/usr/share/elasticsearch/data
+      - ./volume/es01/logs:/usr/share/elasticsearch/logs
     ports:
       - 9201:9200
       - 9301:9300
     networks:
       - elastic-cluster
+
   es02:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.13.2
     container_name: es02
-    privileged: true
     environment:
-      - TAKE_FILE_OWNERSHIP=true
       - node.name=es02
-      - cluster.name=es-docker-cluster
+      - cluster.name=my-application
       - discovery.seed_hosts=es01,es03
       - cluster.initial_master_nodes=es01,es02,es03
       - bootstrap.memory_lock=true
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
-      - TZ="Asia/Shanghai"
-#      - node.master=true
-#      - node.data=true
-      - http.cors.enabled=true
-      - http.cors.allow-origin=*
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ulimits:
       memlock:
         soft: -1
         hard: -1
     volumes:
-      - /docker-mount/elasticsearch/data02/data:/usr/share/elasticsearch/data
-      - /docker-mount/elasticsearch/data02/logs/logs:/usr/share/elasticsearch/logs
-    ports:
-      - 9202:9200
-      - 9302:9300
+      - ./volume/es02/data:/usr/share/elasticsearch/data
+      - ./volume/es02/logs:/usr/share/elasticsearch/logs
     networks:
       - elastic-cluster
+
   es03:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.13.2
     container_name: es03
-    privileged: true
     environment:
-      - TAKE_FILE_OWNERSHIP=true
       - node.name=es03
-      - cluster.name=es-docker-cluster
+      - cluster.name=my-application
       - discovery.seed_hosts=es01,es02
       - cluster.initial_master_nodes=es01,es02,es03
       - bootstrap.memory_lock=true
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
-      - TZ="Asia/Shanghai"
-#      - node.master=true
-#      - node.data=true
-      - http.cors.enabled=true
-      - http.cors.allow-origin=*
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ulimits:
       memlock:
         soft: -1
         hard: -1
     volumes:
-      - /docker-mount/elasticsearch/data03/data:/usr/share/elasticsearch/data
-      - /docker-mount/elasticsearch/data03/logs/logs:/usr/share/elasticsearch/logs
-    ports:
-      - 9203:9200
-      - 9303:9300
+      - ./volume/es03/data:/usr/share/elasticsearch/data
+      - ./volume/es03/logs:/usr/share/elasticsearch/logs
     networks:
       - elastic-cluster
-  kibana:
+
+  kib01:
     image: docker.elastic.co/kibana/kibana:7.13.2
-    container_name: kibana
-    environment:
-      - I18N_LOCALE=zh-CN
-      - ELASTICSEARCH_HOSTS=["http://es01:9201","http://es02:9202","http://es03:9203"]
-#      - server.host=0.0.0.0
-#      - server.port=5601
-      - ELASTICSEARCH_HOSTS=http://es01:9202
+    container_name: kib01
     ports:
-      - "5601:5601"
-#    links:
-#      - es01:vm01
-    depends_on:
-      - es01
-      - es02
-      - es03
+      - 5601:5601
+    environment:
+      - ELASTICSEARCH_URL=http://es01:9200
+      - ELASTICSEARCH_HOSTS=["http://es01:9200","http://es02:9200","http://es03:9200"]
+      - I18N_LOCALE=zh-CN
     networks:
       - elastic-cluster
+#  elasticsearch-head:
+#    image: wallbase/elasticsearch-head:6-alpine
+#    #    image: mobz/elasticsearch-head:5
+#    container_name: elasticsearch-head
+#    environment:
+#      TZ: 'Asia/Shanghai'
+#    ports:
+#      - '9100:9100'
+#    networks:
+#      - elastic-cluster
   cerebro:
     image: lmenezes/cerebro:0.9.2
     container_name: cerebro
     ports:
       - "19000:9000"
-    links:
-      - es01:vm01
     command:
-      - -Dhosts.0.host=http://vm01:9200
+      - -Dhosts.0.host=http://es01:9200
     networks:
       - elastic-cluster
-  elasticsearch-head:
-    image: wallbase/elasticsearch-head:6-alpine
-    container_name: elasticsearch-head
-    environment:
-      TZ: 'Asia/Shanghai'
-    ports:
-      - '9100:9100'
-    networks:
-      - elastic-cluster
-volumes:
-  data01:
-    driver: local
-  data02:
-    driver: local
-  data03:
-    driver: local
-
 networks:
   elastic-cluster:
     driver: bridge
