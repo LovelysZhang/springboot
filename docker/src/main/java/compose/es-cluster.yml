@@ -7,6 +7,7 @@ services:
     container_name: es01
     privileged: true
     environment:
+      # 挂载文件失败，权限不够
       - TAKE_FILE_OWNERSHIP=true
       - node.name=es01
       - cluster.name=es-docker-cluster
@@ -15,8 +16,10 @@ services:
       - bootstrap.memory_lock=true
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
       - TZ="Asia/Shanghai"
-      - node.master=true
-      - node.data=true
+      # 指定该节点是否有资格被选举成为master node，默认true
+#      - node.master=true
+      # 指定该节点是否存储索引数据，默认为true。node.master和node.data不能同时为true
+#      - node.data=true
       - http.cors.enabled=true
       - http.cors.allow-origin=*
       - xpack.security.enabled=false
@@ -45,8 +48,8 @@ services:
       - bootstrap.memory_lock=true
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
       - TZ="Asia/Shanghai"
-      - node.master=true
-      - node.data=true
+#      - node.master=true
+#      - node.data=true
       - http.cors.enabled=true
       - http.cors.allow-origin=*
     ulimits:
@@ -74,8 +77,8 @@ services:
       - bootstrap.memory_lock=true
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
       - TZ="Asia/Shanghai"
-      - node.master=true
-      - node.data=true
+#      - node.master=true
+#      - node.data=true
       - http.cors.enabled=true
       - http.cors.allow-origin=*
     ulimits:
@@ -95,7 +98,7 @@ services:
     container_name: kibana
     environment:
       - I18N_LOCALE=zh-CN
-#      - ELASTICSEARCH_HOSTS=["http://es01:9200","http://es02:9201","http://es03:9202"]
+      - ELASTICSEARCH_HOSTS=["http://es01:9201","http://es02:9202","http://es03:9203"]
 #      - server.host=0.0.0.0
 #      - server.port=5601
       - ELASTICSEARCH_HOSTS=http://es01:9202

@@ -6,7 +6,6 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.13.2
     container_name: es-single
     privileged: true
-    restart: always
     environment:
       - TAKE_FILE_OWNERSHIP=true
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
@@ -24,7 +23,6 @@ services:
   kibana:
     image: docker.elastic.co/kibana/kibana:7.13.2
     container_name: kibana
-    restart: always
     environment:
       - I18N_LOCALE=zh-CN
       - ELASTICSEARCH_HOSTS=http://es-single:9200

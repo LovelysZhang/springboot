@@ -1,0 +1,104 @@
+version: '3'
+services:
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.2
+    container_name: es01
+    environment:
+      # 节点名称
+      - node.name=es01
+      # 集群名称
+      - cluster.name=my-application
+      #指定主机名称
+      - discovery.seed_hosts=es02,es03
+      # 从哪里选举主节点
+      - cluster.initial_master_nodes=es01,es02,es03
+      # 是否锁住内存，避免交换(swapped)带来的性能损失
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      # 解决 elasticsearch-head 跨域问题
+      - http.cors.enabled=true
+      - http.cors.allow-origin=*
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./es01/data:/usr/share/elasticsearch/data
+      - ./es01/logs:/usr/share/elasticsearch/logs
+    ports:
+      - 9201:9200
+      - 9301:9300
+    networks:
+      - elastic-cluster
+
+  es02:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.2
+    container_name: es02
+    environment:
+      - node.name=es02
+      - cluster.name=my-application
+      - discovery.seed_hosts=es01,es03
+      - cluster.initial_master_nodes=es01,es02,es03
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./es02/data:/usr/share/elasticsearch/data
+      - ./es02/logs:/usr/share/elasticsearch/logs
+    networks:
+      - elastic-cluster
+
+  es03:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.2
+    container_name: es03
+    environment:
+      - node.name=es03
+      - cluster.name=my-application
+      - discovery.seed_hosts=es01,es02
+      - cluster.initial_master_nodes=es01,es02,es03
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./es03/data:/usr/share/elasticsearch/data
+      - ./es03/logs:/usr/share/elasticsearch/logs
+    networks:
+      - elastic-cluster
+
+  kib01:
+    image: docker.elastic.co/kibana/kibana:7.13.2
+    container_name: kib01
+    ports:
+      - 5602:5601
+    environment:
+      ELASTICSEARCH_URL: http://es01:9200
+      ELASTICSEARCH_HOSTS: '["http://es01:9200","http://es02:9200","http://es03:9200"]'
+    networks:
+      - elastic-cluster
+  elasticsearch-head:
+#    image: wallbase/elasticsearch-head:6-alpine
+    image: mobz/elasticsearch-head:5
+    container_name: elasticsearch-head
+    environment:
+      TZ: 'Asia/Shanghai'
+    ports:
+      - '9100:9100'
+    networks:
+      - elastic-cluster
+volumes:
+  data01:
+    driver: local
+  data02:
+    driver: local
+  data03:
+    driver: local
+
+networks:
+  elastic-cluster:
+    driver: bridge

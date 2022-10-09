@@ -1219,39 +1219,243 @@ POST _bulk
 { "title": "baoqiangda baoqiangda baoqiangda baoqiangda baoqiangda baoqian baoqia"}
 
 
+GET news/_mapping
+POST _analyze
+{
+  "text": [
+    "BaoQiang bought a new hat with the same color of this font, which is very beautiful",
+    "BaoQiangGe gave birth to two children, one is upstairs, one is downstairs",
+    "BaoQiangGe 's money was rolled away"
+  ]
+}
+
+
+##输入错误情况下的推荐情况
+POST /news/_search
+{
+  "suggest": {
+    "my-suggestion": {
+      "text": "baoqing baoqiang",
+      "term": {
+        "suggest_mode": "always",
+        "field": "title",
+        "min_doc_freq": 3
+      }
+    }
+  }
+}
+
+#complate suggester
+DELETE suggest_carinfo
+PUT suggest_carinfo
+{
+  "mappings": {
+    "properties": {
+      "title": {
+        "type": "text",
+        "analyzer": "ik_max_word",
+        "fields": {
+          "suggest": {
+            "type": "completion",
+            "analyzer": "ik_max_word"
+          }
+        }
+      },
+      "content": {
+        "type": "text",
+        "analyzer": "ik_max_word"
+      }
+    }
+  }
+}
+POST _bulk
+{"index":{"_index":"suggest_carinfo","_id":1}}
+{"title":"宝马X5 两万公里准新车","content":"这里是宝马X5图文描述"}
+{"index":{"_index":"suggest_carinfo","_id":2}}
+{"title":"宝马5系","content":"这里是奥迪A6图文描述"}
+{"index":{"_index":"suggest_carinfo","_id":3}}
+{"title":"宝马3系","content":"这里是奔驰图文描述"}
+{"index":{"_index":"suggest_carinfo","_id":4}}
+{"title":"奥迪Q5 两万公里准新车","content":"这里是宝马X5图文描述"}
+{"index":{"_index":"suggest_carinfo","_id":5}}
+{"title":"奥迪A6 无敌车况","content":"这里是奥迪A6图文描述"}
+{"index":{"_index":"suggest_carinfo","_id":6}}
+{"title":"奥迪双钻","content":"这里是奔驰图文描述"}
+{"index":{"_index":"suggest_carinfo","_id":7}}
+{"title":"奔驰AMG 两万公里准新车","content":"这里是宝马X5图文描述"}
+{"index":{"_index":"suggest_carinfo","_id":8}}
+{"title":"奔驰大G 无敌车况","content":"这里是奥迪A6图文描述"}
+{"index":{"_index":"suggest_carinfo","_id":9}}
+{"title":"奔驰C260","content":"这里是奔驰图文描述"}
+{"index":{"_index":"suggest_carinfo","_id":10}}
+{"title":"nir奔驰C260","content":"这里是奔驰图文描述"}
+
+
+##奥迪为前缀
+GET suggest_carinfo/_search
+{
+  "suggest": {
+    "car_suggest": {
+      "prefix": "奥迪",
+      "completion": {
+        "field": "title.suggest"
+      }
+    }
+  }
+}
+##fuzzy
+GET suggest_carinfo/_search
+{
+  
+}
+
+
+# context suggester
+# 定义一个名为 place_type的类别上下文，其中类别必须与建议一起送。
+# 定义一个名为 location 的地理上下文，类别必须与建议一起发送
+DELETE place
+PUT place
+{
+  "mappings": {
+    "properties": {
+      "suggest": {
+        "type": "completion",
+        "contexts": [
+          {
+            "name": "place_type",
+            "type": "category"
+          },
+          {
+            "name": "location",
+            "type": "geo",
+            "precision": 4
+          }
+        ]
+      }
+    }
+  }
+}
 
 
 
+PUT place/_doc/1
+{
+  "suggest": {
+    "input": [
+      "timmy's",
+      "starbucks",
+      "dunkin donuts"
+    ],
+    "contexts": {
+      "place_type": [
+        "cafe",
+        "food"
+      ]
+    }
+  }
+}
+PUT place/_doc/2
+{
+  "suggest": {
+    "input": [
+      "monkey",
+      "timmy's",
+      "Lamborghini"
+    ],
+    "contexts": {
+      "place_type": [
+        "money"
+      ]
+    }
+  }
+}
+
+GET place/_search
+
+POST place/_search?pretty
+{
+  "suggest": {
+    "place_suggestion": {
+      "prefix": "sta",
+      "completion": {
+        "field": "suggest",
+        "size": 10,
+        "contexts": {
+          "place_type": [
+            "cafe",
+            "restaurants"
+          ]
+        }
+      }
+    }
+  }
+}
+
+# 某些类别的建议可以比其他类别提升得更高。以下按类别过滤建议，并额外提升与某些类别相关的建议(权重)
+GET place/_search
+
+
+POST place/_search?pretty
+{
+  "suggest": {
+    "place_suggestion": {
+      "prefix": "tim",
+      "completion": {
+        "field": "suggest",
+        "context": {
+          "place_type": [
+            {
+              "context": "cafe"
+            },
+            {
+              "context": "money",
+              "boost": 2
+            }
+          ]
+        }
+      }
+    }
+  }
+}
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# 地理位置筛选器
+PUT place/_doc/3
+{
+  "suggest": {
+    "input": "timmy's",
+    "contexts": {
+      "location": [
+        {
+          "lat": 43.6624803,
+          "lon": -79.3863353
+        },
+        {
+          "lat": 43.6624718,
+          "lon": -79.3873227
+        }
+      ]
+    }
+  }
+}
+POST place/_search
+{
+  "suggest": {
+    "place_suggestion": {
+      "prefix": "tim",
+      "completion": {
+        "field": "suggest",
+        "contexts": {
+          "location": {
+            "lat": 43.662,
+            "lon": -79.38
+          }
+        }
+      }
+    }
+  }
+}
 
 
 
