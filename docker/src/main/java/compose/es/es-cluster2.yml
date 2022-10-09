@@ -23,8 +23,8 @@ services:
         soft: -1
         hard: -1
     volumes:
-      - ./es01/data:/usr/share/elasticsearch/data
-      - ./es01/logs:/usr/share/elasticsearch/logs
+      - ./volume/es01/data:/usr/share/elasticsearch/data
+      - ./volume/es01/logs:/usr/share/elasticsearch/logs
     ports:
       - 9201:9200
       - 9301:9300
@@ -46,8 +46,8 @@ services:
         soft: -1
         hard: -1
     volumes:
-      - ./es02/data:/usr/share/elasticsearch/data
-      - ./es02/logs:/usr/share/elasticsearch/logs
+      - ./volume/es02/data:/usr/share/elasticsearch/data
+      - ./volume/es02/logs:/usr/share/elasticsearch/logs
     networks:
       - elastic-cluster
 
@@ -66,8 +66,8 @@ services:
         soft: -1
         hard: -1
     volumes:
-      - ./es03/data:/usr/share/elasticsearch/data
-      - ./es03/logs:/usr/share/elasticsearch/logs
+      - ./volume/es03/data:/usr/share/elasticsearch/data
+      - ./volume/es03/logs:/usr/share/elasticsearch/logs
     networks:
       - elastic-cluster
 
@@ -75,14 +75,15 @@ services:
     image: docker.elastic.co/kibana/kibana:7.13.2
     container_name: kib01
     ports:
-      - 5602:5601
+      - 5601:5601
     environment:
-      ELASTICSEARCH_URL: http://es01:9200
-      ELASTICSEARCH_HOSTS: '["http://es01:9200","http://es02:9200","http://es03:9200"]'
+      - ELASTICSEARCH_URL=http://es01:9200
+      - ELASTICSEARCH_HOSTS=["http://es01:9200","http://es02:9200","http://es03:9200"]
+      - I18N_LOCALE=zh-CN
     networks:
       - elastic-cluster
   elasticsearch-head:
-#    image: wallbase/elasticsearch-head:6-alpine
+    #    image: wallbase/elasticsearch-head:6-alpine
     image: mobz/elasticsearch-head:5
     container_name: elasticsearch-head
     environment:
@@ -91,14 +92,15 @@ services:
       - '9100:9100'
     networks:
       - elastic-cluster
-volumes:
-  data01:
-    driver: local
-  data02:
-    driver: local
-  data03:
-    driver: local
-
+  cerebro:
+    image: lmenezes/cerebro:0.9.2
+    container_name: cerebro
+    ports:
+      - "19000:9000"
+    command:
+      - -Dhosts.0.host=http://es01:9200
+    networks:
+      - elastic-cluster
 networks:
   elastic-cluster:
     driver: bridge
