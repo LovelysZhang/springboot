@@ -1,4 +1,4 @@
 ### docker
 *.jar
-排查容器挂载文件
-volume
+容器挂载文件
+**/volume/**
