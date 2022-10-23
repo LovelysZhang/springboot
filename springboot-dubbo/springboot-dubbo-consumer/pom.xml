@@ -12,8 +12,7 @@
     <artifactId>springboot-dubbo-consumer</artifactId>
 
     <properties>
-        <dubbo.version>2.7.5</dubbo.version>
-        <curator.version>4.2.0</curator.version>
+
     </properties>
 
     <dependencies>
@@ -22,23 +21,30 @@
             <artifactId>springboot-dubbo-api</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!--dubbo、zk client-->
+
+        <!-- dubbo -->
+        <dependency>
+            <groupId>org.apache.dubbo</groupId>
+            <artifactId>dubbo</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.dubbo</groupId>
+            <artifactId>dubbo-dependencies-zookeeper</artifactId>
+            <type>pom</type>
+            <exclusions>
+                <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- dubbo starter -->
         <dependency>
             <groupId>org.apache.dubbo</groupId>
             <artifactId>dubbo-spring-boot-starter</artifactId>
-            <version>${dubbo.version}</version>
         </dependency>
-        <!--注意curator的版本和安装的zk版本对应-->
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-framework</artifactId>
-            <version>${curator.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-recipes</artifactId>
-            <version>${curator.version}</version>
-        </dependency>
+
         <!--web mvc-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -50,8 +56,7 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
+            <artifactId>spring-boot-autoconfigure</artifactId>
         </dependency>
 
     </dependencies>

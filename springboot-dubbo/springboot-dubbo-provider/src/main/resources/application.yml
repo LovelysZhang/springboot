@@ -1,11 +1,11 @@
-#server:
-#  port: 8099
+server:
+  port: 8099
 logging:
   level:
     root: info
 dubbo:
   application:
-    name: dubbo-auto-configuration-provider
+    name: dubbo-springboot-demo-provider
   # Base packages to scan Dubbo Component: @org.apache.dubbo.config.annotation.Service
   scan:
     base-packages: com.dubbo.provider.service
@@ -13,5 +13,9 @@ dubbo:
     name: dubbo
     port: 12345
   registry:
-    address: zookeeper://localhost:12181
+    address: zookeeper://127.0.0.1:2181
+  config-center:
+    address: zookeeper://127.0.0.1:2181
+  metadata-report:
+    address: zookeeper://127.0.0.1:2181
 
