@@ -59,5 +59,11 @@
             <artifactId>spring-boot-autoconfigure</artifactId>
         </dependency>
 
+        <!--由于 Triple 协议底层需要依赖 protobuf 协议进行传输，即使定义的服务接口不使用 protobuf 也需要在环境中引入 protobuf 的依赖。-->
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>3.19.4</version>
+        </dependency>
     </dependencies>
 </project>

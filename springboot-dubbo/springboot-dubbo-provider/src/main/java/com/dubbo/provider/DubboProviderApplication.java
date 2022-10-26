@@ -12,7 +12,7 @@ import java.util.concurrent.CountDownLatch;
 @SpringBootApplication
 public class DubboProviderApplication {
     public static void main(String[] args) throws Exception {
-        new EmbeddedZooKeeper(2181, false).start();
+        new EmbeddedZooKeeper(2181, true).start();
 
         SpringApplication.run(DubboProviderApplication.class, args);
         System.out.println("dubbo service started");

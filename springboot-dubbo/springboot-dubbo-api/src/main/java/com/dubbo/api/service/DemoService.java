@@ -1,5 +1,7 @@
 package com.dubbo.api.service;
 
+import org.apache.dubbo.common.stream.StreamObserver;
+
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -13,4 +15,18 @@ public interface DemoService {
     default CompletableFuture<String> sayHelloAsync(String name) {
         return CompletableFuture.completedFuture(sayHello(name));
     }
+
+    /**
+     * 双向流
+     * @param response
+     * @return
+     */
+    StreamObserver<String> sayHelloStream(StreamObserver<String> response);
+
+    /**
+     * 服务端流
+     * @param request
+     * @param response
+     */
+    void sayHelloServerStream(String request, StreamObserver<String> response);
 }

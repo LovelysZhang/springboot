@@ -11,9 +11,10 @@ dubbo:
   metadata-report:
     address: zookeeper://127.0.0.1:2181
 
-  protocol:
-    name: dubbo
-    port: 12345
+#  不配置消费者可以自动发现
+#  protocol:
+#    name: dubbo
+#    port: 12345
   consumer:
     # check 为 false 的话那么 consumer 启动时不会去检查 provider 启动与否
     check: false
