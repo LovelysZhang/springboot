@@ -43,7 +43,7 @@
         <java.version>1.8</java.version>
         <logback.version>1.2.3</logback.version>
         <slf4j-api.version>1.7.25</slf4j-api.version>
-        <jackson.version>2.12.1</jackson.version>
+        <jackson.version>2.12.7.1</jackson.version>
         <lombok.version>1.18.16</lombok.version>
         <qmq.version>1.1.21</qmq.version>
     </properties>
